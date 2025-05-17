@@ -1,6 +1,6 @@
-import { 
+import {
   Scene,
-  PerspectiveCamera, 
+  PerspectiveCamera,
   WebGLRenderer,
   TextureLoader,
   AmbientLight,
@@ -10,13 +10,9 @@ import {
   Mesh,
   ClampToEdgeWrapping,
   LinearFilter,
-  Texture
+  Texture,
 } from 'three';
-import { 
-  Libration, 
-  MoonPhase, 
-  KM_PER_AU,
-} from 'astronomy-engine';
+import { Libration, MoonPhase, KM_PER_AU } from 'astronomy-engine';
 import { currentDate } from './date';
 import { location } from './location';
 import { calculateParallacticAngle } from './utils';
@@ -26,40 +22,44 @@ const KM = 1.0 / 100000;
 const AU = KM / KM_PER_AU;
 
 export type SceneObjects = {
-  scene: Scene,
-  camera: PerspectiveCamera,
-  renderer: WebGLRenderer,
-  moon: Mesh<SphereGeometry, MeshPhongMaterial> | null,
-  directionalLight: DirectionalLight,
-}
+  scene: Scene;
+  camera: PerspectiveCamera;
+  renderer: WebGLRenderer;
+  moon: Mesh<SphereGeometry, MeshPhongMaterial> | null;
+  directionalLight: DirectionalLight;
+};
 
 export function updateScene(objects: SceneObjects): void {
   if (!objects.moon) return;
-  
+
   // Get current moon position
   const moonPosition = Libration(currentDate);
-  
+
   // Calculate parallactic angle
   const parallacticAngle = calculateParallacticAngle(currentDate, location);
-  
+
   // Update moon rotation
-  objects.moon.rotation.y = (-moonPosition.elon - 90) * Math.PI / 180;
-  objects.moon.rotation.x = moonPosition.elat * Math.PI / 180;
-  
+  objects.moon.rotation.y = ((-moonPosition.elon - 90) * Math.PI) / 180;
+  objects.moon.rotation.x = (moonPosition.elat * Math.PI) / 180;
+
   // Update camera position
   objects.camera.position.set(0, 0, moonPosition.dist_km * KM);
-  objects.camera.rotation.z = parallacticAngle * Math.PI / 180;
+  objects.camera.rotation.z = (parallacticAngle * Math.PI) / 180;
   objects.camera.lookAt(objects.moon.position);
-  
+
   // Update light based on moon phase
   const phase = MoonPhase(currentDate);
-  objects.directionalLight.position.set(Math.sin(phase * Math.PI / 180) * AU, 0, -Math.cos(phase * Math.PI / 180) * AU);
-  
+  objects.directionalLight.position.set(
+    Math.sin((phase * Math.PI) / 180) * AU,
+    0,
+    -Math.cos((phase * Math.PI) / 180) * AU
+  );
+
   // Render the scene
   objects.renderer.render(objects.scene, objects.camera);
 }
 
-async function loadTextures(): Promise<{ colorTexture: Texture, elevationTexture: Texture }> {
+async function loadTextures(): Promise<{ colorTexture: Texture; elevationTexture: Texture }> {
   const textureLoader = new TextureLoader();
   const colorTexture = await textureLoader.load('/assets/moon-texture.webp');
   const elevationTexture = await textureLoader.load('/assets/moon-elevation.webp');
@@ -84,7 +84,7 @@ export async function initScene(): Promise<SceneObjects> {
   scene.add(ambientLight);
 
   // Using a significantly brighter directional light
-  const directionalLight = new DirectionalLight(0xFFFFFF, 4);
+  const directionalLight = new DirectionalLight(0xffffff, 4);
   scene.add(directionalLight);
 
   let moon: Mesh<SphereGeometry, MeshPhongMaterial> | null = null; // Reference to the moon mesh

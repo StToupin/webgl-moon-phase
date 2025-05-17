@@ -14,12 +14,12 @@ export function initDateSelector({ onChange }: { onChange?: () => void } = {}): 
     slider.addEventListener('input', () => {
       const dayOffset = parseFloat(slider.value);
       currentDate = new Date(baseDate.getTime() + dayOffset * 24 * 60 * 60 * 1000);
-      
+
       const dateDisplay = document.getElementById('date-display');
       if (dateDisplay) {
-          dateDisplay.textContent = currentDate.toLocaleString();
+        dateDisplay.textContent = currentDate.toLocaleString();
       }
-      
+
       if (onChange) onChange();
     });
   }
