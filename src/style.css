@@ -1,0 +1,28 @@
+body { 
+  margin: 0; 
+  overflow: hidden; 
+  background-color: #000000; 
+  font-family: monospace;
+}
+
+#controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px 20px;
+  border-radius: 10px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#time-slider {
+  width: 300px;
+}
+
+#date-display {
+  min-width: 200px;
+} 
