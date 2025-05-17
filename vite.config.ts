@@ -6,7 +6,7 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
-    sourcemap: false,
+    sourcemap: false, // Disable sourcemaps for production
     target: 'es2015',
     minify: 'terser',
     rollupOptions: {
@@ -18,4 +18,4 @@ export default defineConfig({
       }
     }
   }
-});
+}); 

@@ -10,17 +10,19 @@ import {
   SphereGeometry,
   Mesh,
   ClampToEdgeWrapping,
-  LinearFilter
+  LinearFilter,
+  Texture
 } from 'three';
 
-// Import only the necessary astronomy functions
+// Import from astronomy-engine (which has its own type definitions)
 import { 
   Observer, 
   Equator, 
   SiderealTime, 
   Libration, 
   MoonPhase, 
-  KM_PER_AU 
+  KM_PER_AU,
+  Body
 } from 'astronomy-engine';
 import './style.css';
 
@@ -52,15 +54,17 @@ scene.add(ambientLight);
 const directionalLight = new DirectionalLight(0xFFFFFF, 4);
 scene.add(directionalLight);
 
-let moon; // Reference to the moon mesh
+let moon: Mesh<SphereGeometry, MeshPhongMaterial> | null = null; // Reference to the moon mesh
 
 // Calculate parallactic angle of the Moon
-function calculateParallacticAngle(date, observer) {
+function calculateParallacticAngle(date: Date, observer: Observer): number {
     // Get equatorial coordinates of the Moon
-    const equ = Equator('Moon', date, observer, true, true);
+    const equ = Equator(Body.Moon, date, observer, true, true);
     
     // Calculate hour angle in radians
-    const hourAngle = SiderealTime(date, observer.longitude) - equ.ra;
+    // Using correct implementation of SiderealTime - subtract RA to get hour angle
+    const siderealTime = SiderealTime(date);
+    const hourAngle = siderealTime - equ.ra;
     
     // Convert latitude and declination to radians
     const latRad = observer.latitude * Math.PI / 180;
@@ -77,7 +81,7 @@ function calculateParallacticAngle(date, observer) {
     return parallacticAngle;
 }
 
-function updateScene() {
+function updateScene(): void {
     if (!moon) return;
     
     // Get current moon position
@@ -103,15 +107,20 @@ function updateScene() {
     renderer.render(scene, camera);
 }
 
+interface TextureResult {
+    colorTexture?: Texture;
+    heightMap?: Texture;
+}
+
 // Load textures
 const textureLoader = new TextureLoader();
-Promise.all([
-    new Promise((resolve) => {
+Promise.all<TextureResult>([
+    new Promise<TextureResult>((resolve) => {
         textureLoader.load('/assets/moon-texture.webp', (texture) => {
             resolve({ colorTexture: texture });
         });
     }),
-    new Promise((resolve) => {
+    new Promise<TextureResult>((resolve) => {
         textureLoader.load('/assets/moon-elevation.webp', (texture) => {
             texture.wrapS = ClampToEdgeWrapping;
             texture.wrapT = ClampToEdgeWrapping;
@@ -123,6 +132,8 @@ Promise.all([
 ]).then((results) => {
     const colorTexture = results[0].colorTexture;
     const heightMap = results[1].heightMap;
+    
+    if (!colorTexture || !heightMap) return;
     
     const moonMaterial = new MeshPhongMaterial({
         map: colorTexture,
@@ -143,21 +154,29 @@ Promise.all([
 });
 
 // Set up slider functionality
-const slider = document.getElementById('time-slider');
-slider.addEventListener('input', () => {
-    // Calculate new date based on slider position
-    const dayOffset = parseFloat(slider.value);
-    currentDate = new Date(baseDate.getTime() + dayOffset * 24 * 60 * 60 * 1000);
-    
-    // Update the date display
-    document.getElementById('date-display').textContent = currentDate.toLocaleString();
-    
-    // Recalculate moon position and update the scene
-    updateScene();
-});
+const slider = document.getElementById('time-slider') as HTMLInputElement;
+if (slider) {
+    slider.addEventListener('input', () => {
+        // Calculate new date based on slider position
+        const dayOffset = parseFloat(slider.value);
+        currentDate = new Date(baseDate.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+        
+        // Update the date display
+        const dateDisplay = document.getElementById('date-display');
+        if (dateDisplay) {
+            dateDisplay.textContent = currentDate.toLocaleString();
+        }
+        
+        // Recalculate moon position and update the scene
+        updateScene();
+    });
+}
 
 // Update the date display initially
-document.getElementById('date-display').textContent = currentDate.toLocaleString();
+const dateDisplay = document.getElementById('date-display');
+if (dateDisplay) {
+    dateDisplay.textContent = currentDate.toLocaleString();
+}
 
 // Handle window resize
 window.addEventListener('resize', () => {
@@ -165,4 +184,4 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     updateScene();
-});
+}); 
