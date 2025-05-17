@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  base: '/webgl-moon-phase/', // GitHub Pages repository name
   root: 'src',
   publicDir: '../public',
   build: {

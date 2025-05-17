@@ -9,6 +9,8 @@ An interactive 3D Moon visualization showing accurate lunar phases and orientati
 - Time slider to view the moon at different dates
 - Correct lunar libration visualization
 
+Live demo: https://sttoupin.github.io/webgl-moon-phase/
+
 ## Development
 
 ```bash

@@ -61,8 +61,8 @@ export function updateScene(objects: SceneObjects): void {
 
 async function loadTextures(): Promise<{ colorTexture: Texture; elevationTexture: Texture }> {
   const textureLoader = new TextureLoader();
-  const colorTexture = await textureLoader.load('/assets/moon-texture.webp');
-  const elevationTexture = await textureLoader.load('/assets/moon-elevation.webp');
+  const colorTexture = await textureLoader.load('assets/moon-texture.webp');
+  const elevationTexture = await textureLoader.load('assets/moon-elevation.webp');
   elevationTexture.wrapS = ClampToEdgeWrapping;
   elevationTexture.wrapT = ClampToEdgeWrapping;
   elevationTexture.minFilter = LinearFilter;
