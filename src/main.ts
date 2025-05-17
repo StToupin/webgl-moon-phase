@@ -26,10 +26,61 @@ import {
 } from 'astronomy-engine';
 import './style.css';
 
-// Paris coordinates
-const parisLat = 48.8566;  // degrees north
-const parisLon = 2.3522;   // degrees east
-const observer = new Observer(parisLat, parisLon, 0);
+// Default coordinates (Paris)
+const DEFAULT_LAT = 48.8566;  // degrees north
+const DEFAULT_LON = 2.3522;   // degrees east
+
+// Create observer initially with default coordinates
+let observer = new Observer(DEFAULT_LAT, DEFAULT_LON, 0);
+
+// Function to update observer with new coordinates
+function updateObserver(latitude: number, longitude: number): void {
+  console.log(`Location updated to: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+  observer = new Observer(latitude, longitude, 0);
+  
+  // Update the location display
+  const locationDisplay = document.getElementById('location-display');
+  if (locationDisplay) {
+    locationDisplay.textContent = `Location: ${latitude.toFixed(4)}°N, ${longitude.toFixed(4)}°E`;
+  }
+  
+  // Update the scene if moon is already loaded
+  if (moon) {
+    updateScene();
+  }
+}
+
+// Try to get user's location
+function getUserLocation(): void {
+  if (!navigator.geolocation) {
+    console.log('Geolocation is not supported by your browser');
+    return;
+  }
+  
+  navigator.geolocation.getCurrentPosition(
+    // Success callback
+    (position) => {
+      updateObserver(position.coords.latitude, position.coords.longitude);
+    },
+    // Error callback
+    (error) => {
+      console.log('Unable to retrieve your location');
+      console.error(error);
+      
+      // Keep using default location
+      const locationDisplay = document.getElementById('location-display');
+      if (locationDisplay) {
+        locationDisplay.textContent = `Location: ${DEFAULT_LAT.toFixed(4)}°N, ${DEFAULT_LON.toFixed(4)}°E (default)`;
+      }
+    },
+    // Options
+    {
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 0
+    }
+  );
+}
 
 const baseDate = new Date();
 let currentDate = new Date(baseDate);
@@ -153,29 +204,41 @@ Promise.all<TextureResult>([
     updateScene();
 });
 
-// Set up slider functionality
-const slider = document.getElementById('time-slider') as HTMLInputElement;
-if (slider) {
-    slider.addEventListener('input', () => {
-        // Calculate new date based on slider position
-        const dayOffset = parseFloat(slider.value);
-        currentDate = new Date(baseDate.getTime() + dayOffset * 24 * 60 * 60 * 1000);
-        
-        // Update the date display
-        const dateDisplay = document.getElementById('date-display');
-        if (dateDisplay) {
-            dateDisplay.textContent = currentDate.toLocaleString();
-        }
-        
-        // Recalculate moon position and update the scene
-        updateScene();
-    });
-}
+// Initialize the app
+function init(): void {
+  // Try to get user's location
+  getUserLocation();
+  
+  // Set up slider functionality
+  const slider = document.getElementById('time-slider') as HTMLInputElement;
+  if (slider) {
+      slider.addEventListener('input', () => {
+          // Calculate new date based on slider position
+          const dayOffset = parseFloat(slider.value);
+          currentDate = new Date(baseDate.getTime() + dayOffset * 24 * 60 * 60 * 1000);
+          
+          // Update the date display
+          const dateDisplay = document.getElementById('date-display');
+          if (dateDisplay) {
+              dateDisplay.textContent = currentDate.toLocaleString();
+          }
+          
+          // Recalculate moon position and update the scene
+          updateScene();
+      });
+  }
 
-// Update the date display initially
-const dateDisplay = document.getElementById('date-display');
-if (dateDisplay) {
-    dateDisplay.textContent = currentDate.toLocaleString();
+  // Update the date display initially
+  const dateDisplay = document.getElementById('date-display');
+  if (dateDisplay) {
+      dateDisplay.textContent = currentDate.toLocaleString();
+  }
+  
+  // Set initial location display
+  const locationDisplay = document.getElementById('location-display');
+  if (locationDisplay) {
+      locationDisplay.textContent = `Location: ${DEFAULT_LAT.toFixed(4)}°N, ${DEFAULT_LON.toFixed(4)}°E`;
+  }
 }
 
 // Handle window resize
@@ -184,4 +247,7 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
     updateScene();
-}); 
+});
+
+// Start the application
+init(); 

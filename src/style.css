@@ -17,12 +17,12 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 90%;
+  width: auto;
 }
 
 #time-slider {
   width: 300px;
 }
-
-#date-display {
-  min-width: 200px;
-} 
